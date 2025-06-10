@@ -42,7 +42,9 @@ void APlayerCharacter::BeginPlay()
 			subsystem->AddMappingContext(InputMappingContext, 0);
 		}
 	}
-	
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;	
 }
 
 // Called every frame
@@ -75,6 +77,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		if (FireAction)
 		{
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Shoot);
+		}
+		if (JumpAction)
+		{
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		}
 	}
 
