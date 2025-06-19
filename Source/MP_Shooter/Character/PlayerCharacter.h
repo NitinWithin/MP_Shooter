@@ -54,6 +54,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float TurnRate = 100;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* OverheadWidget;
+
 	void Move(const FInputActionValue& value);
 	void Run(const FInputActionValue& value);
 	void StopRun(const FInputActionValue& value);

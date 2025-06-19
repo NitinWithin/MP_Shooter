@@ -8,6 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -16,7 +17,7 @@ APlayerCharacter::APlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));	
 
 	CameraBoom->SetupAttachment(GetMesh());
 	CameraBoom->TargetArmLength = 600;
@@ -25,6 +26,8 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("NetworkRole"));
+	OverheadWidget->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
