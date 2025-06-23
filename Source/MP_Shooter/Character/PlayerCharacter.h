@@ -8,6 +8,7 @@
 #include "PlayerCharacter.generated.h"
 
 class UInputAction;
+class AWeapon;
 
 UCLASS()
 class MP_SHOOTER_API APlayerCharacter : public ACharacter
@@ -19,6 +20,7 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,8 +32,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	class UCameraComponent* Camera;
 											
-	/* INPUT */
+	
 	APlayerController* PlayerController;
+
+	/* INPUT */
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputMappingContext* InputMappingContext;
@@ -54,9 +58,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float TurnRate = 100;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* OverheadWidget;
-
 	void Move(const FInputActionValue& value);
 	void Run(const FInputActionValue& value);
 	void StopRun(const FInputActionValue& value);
@@ -64,9 +65,17 @@ private:
 	void Shoot(const FInputActionValue& value);
 
 	/* INPUT */
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* OverheadWidget;
+
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	AWeapon* OverlappingWeapon;
+
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 public:	
-
+	void SetOverlappingWeapon(AWeapon* Weapon);
 
 };
