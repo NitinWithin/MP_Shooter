@@ -235,3 +235,8 @@ void APlayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 
 }
 
+bool APlayerCharacter::IsWeaponEquipped()
+{
+	return (Combat && Combat->EquippedWeapon);
+}
+

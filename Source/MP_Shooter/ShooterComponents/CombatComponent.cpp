@@ -6,12 +6,20 @@
 #include "MP_Shooter/Character/PlayerCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+}
+
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 }
 
 void UCombatComponent::BeginPlay()
@@ -40,12 +48,4 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetOwner(PlayerCharacter);
 }
 
-
-// Called every frame
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-
-}
 

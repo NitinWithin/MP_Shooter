@@ -15,15 +15,20 @@ class MP_SHOOTER_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
 	friend class APlayerCharacter;
+
+	//Uncomment if needed
+	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	class APlayerCharacter* PlayerCharacter;
+
+	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon;
 
 public:	
