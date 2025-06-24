@@ -21,6 +21,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PostInitializeComponents() override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -56,12 +57,16 @@ private:
 	UInputAction* FireAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* InteractAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
 	float TurnRate = 100;
 
 	void Move(const FInputActionValue& value);
 	void Run(const FInputActionValue& value);
 	void StopRun(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
+	void Interact(const FInputActionValue& value);
 	void Shoot(const FInputActionValue& value);
 
 	/* INPUT */
@@ -74,6 +79,12 @@ private:
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
+	UPROPERTY(VisibleAnywhere)
+	class UCombatComponent* Combat;
+
+	UFUNCTION(Server, Reliable)
+	void ServerInteractButtonPressed();
 
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);

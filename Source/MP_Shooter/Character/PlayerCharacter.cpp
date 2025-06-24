@@ -11,6 +11,7 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "MP_Shooter/Weapon/Weapon.h"
+#include "MP_Shooter/ShooterComponents/CombatComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -31,6 +32,9 @@ APlayerCharacter::APlayerCharacter()
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("NetworkRole"));
 	OverheadWidget->SetupAttachment(RootComponent);
+
+	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	Combat->SetIsReplicated(true);
 }
 
 
@@ -41,6 +45,16 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	// Add properties to replicated for the derived class
 	DOREPLIFETIME_CONDITION(APlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
+}
+
+void APlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (Combat)
+	{
+		Combat->PlayerCharacter = this;
+	}
 }
 
 
@@ -98,6 +112,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		if (JumpAction)
 		{
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		}
+		if (InteractAction)
+		{
+			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
 		}
 	}
 
@@ -157,6 +175,24 @@ void APlayerCharacter::Look(const FInputActionValue& value)
 	}
 }
 
+void APlayerCharacter::Interact(const FInputActionValue& value)
+{
+	const bool Currentvalue = value.Get<bool>();
+	if (Currentvalue && Combat )
+	{
+		if (HasAuthority())
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Client call"));
+			ServerInteractButtonPressed();
+		}
+	}
+}
+
 void APlayerCharacter::Shoot(const FInputActionValue& value)
 {
 }
@@ -167,9 +203,17 @@ void APlayerCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	{
 		OverlappingWeapon->ShowPickUpWidget(true);
 	}
-	if(LastWeapon)
+	if (LastWeapon)
 	{
 		LastWeapon->ShowPickUpWidget(false);
+	}
+}
+
+void APlayerCharacter::ServerInteractButtonPressed_Implementation()
+{
+	if (Combat)
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
 	}
 }
 
@@ -180,6 +224,7 @@ void APlayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 		OverlappingWeapon->ShowPickUpWidget(false);
 	}
 	OverlappingWeapon = Weapon;
+
 	if (IsLocallyControlled()) // Ensure this is only set on the server
 	{
 		if (OverlappingWeapon)
