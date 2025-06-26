@@ -76,6 +76,7 @@ void APlayerCharacter::BeginPlay()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;	
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 // Called every frame
@@ -116,6 +117,16 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		if (InteractAction)
 		{
 			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
+		}
+		if (CrouchAction)
+		{
+			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &APlayerCharacter::CrouchButtonPressed);
+			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &APlayerCharacter::CrouchButtonReleased);
+		}
+		if (AimAction)
+		{
+			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &APlayerCharacter::AimButtonPressed);
+			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &APlayerCharacter::AimButtonReleased);
 		}
 	}
 
@@ -193,6 +204,32 @@ void APlayerCharacter::Interact(const FInputActionValue& value)
 	}
 }
 
+void APlayerCharacter::CrouchButtonPressed(const FInputActionValue& value)
+{
+	Crouch();
+}
+
+void APlayerCharacter::CrouchButtonReleased(const FInputActionValue& value)
+{
+	UnCrouch();
+}
+
+void APlayerCharacter::AimButtonPressed(const FInputActionValue& value)
+{
+	if (Combat)
+	{
+		Combat->SetAiming(true);
+	}
+}
+
+void APlayerCharacter::AimButtonReleased(const FInputActionValue& value)
+{
+	if (Combat)
+	{
+		Combat->SetAiming(false);
+	}
+}
+
 void APlayerCharacter::Shoot(const FInputActionValue& value)
 {
 }
@@ -238,5 +275,10 @@ void APlayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 bool APlayerCharacter::IsWeaponEquipped()
 {
 	return (Combat && Combat->EquippedWeapon);
+}
+
+bool APlayerCharacter::IsAiming()
+{
+	return (Combat && Combat->bAiming);
 }
 

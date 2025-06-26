@@ -7,6 +7,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -20,6 +21,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bAiming)
 }
 
 void UCombatComponent::BeginPlay()
@@ -28,9 +30,30 @@ void UCombatComponent::BeginPlay()
 	
 }
 
+void UCombatComponent::SetAiming(bool bIsAiming)
+{
+	bAiming = bIsAiming;
+	ServerSetAiming(bIsAiming);
+	
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && playerCharacter)
+	{
+		playerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+		playerCharacter->bUseControllerRotationYaw = true;
+	}
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
+{
+	bAiming = bIsAiming;
+}
+
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
-	if (PlayerCharacter == nullptr || WeaponToEquip == nullptr)
+	if (playerCharacter == nullptr || WeaponToEquip == nullptr)
 	{
 		return;
 	}
@@ -39,13 +62,13 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
 	//Attach weapon to socket
-	const USkeletalMeshSocket* HandSocket = PlayerCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	const USkeletalMeshSocket* HandSocket = playerCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 	if (HandSocket)
 	{
-		HandSocket->AttachActor(EquippedWeapon, PlayerCharacter->GetMesh());
+		HandSocket->AttachActor(EquippedWeapon, playerCharacter->GetMesh());
 	}
 
-	EquippedWeapon->SetOwner(PlayerCharacter);
+	EquippedWeapon->SetOwner(playerCharacter);
 }
 
 

@@ -4,6 +4,7 @@
 #include "PlayerAnimInstance.h"
 #include "PlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UPlayerAnimInstance::NativeInitializeAnimation()
 {
@@ -35,4 +36,22 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsAccelerating = playerCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 
 	bWeaponEquipped = playerCharacter->IsWeaponEquipped();
+
+	bIsCrouched = playerCharacter->bIsCrouched;
+
+	bIsAiming = playerCharacter->IsAiming();
+
+	//YawOffset Calculations
+	FRotator AimRotation = playerCharacter->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(playerCharacter->GetVelocity());
+	FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation);
+	DeltaRotation = FMath::RInterpTo(DeltaRotation, DeltaRot, DeltaTime, 15.f);
+	YawOffset = DeltaRotation.Yaw;
+
+	CharacterRotationLastFrame = CharacterRotation;
+	CharacterRotation = playerCharacter->GetActorRotation();
+	const FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame);
+	const float Target = Delta.Yaw / DeltaTime;
+	const float Interp = FMath::FInterpTo(Lean, Target, DeltaTime, 6.0f);
+	Lean = FMath::Clamp(Interp, -90.f, 90.f);
 }

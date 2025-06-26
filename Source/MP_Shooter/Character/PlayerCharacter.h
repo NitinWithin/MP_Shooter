@@ -60,6 +60,12 @@ private:
 	UInputAction* InteractAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* CrouchAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* AimAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
 	float TurnRate = 100;
 
 	void Move(const FInputActionValue& value);
@@ -67,6 +73,10 @@ private:
 	void StopRun(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
 	void Interact(const FInputActionValue& value);
+	void CrouchButtonPressed(const FInputActionValue& value);
+	void CrouchButtonReleased(const FInputActionValue& value);
+	void AimButtonPressed(const FInputActionValue& value);
+	void AimButtonReleased(const FInputActionValue& value);
 	void Shoot(const FInputActionValue& value);
 
 	/* INPUT */
@@ -89,5 +99,6 @@ private:
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
+	bool IsAiming();
 
 };
