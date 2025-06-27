@@ -96,9 +96,26 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerInteractButtonPressed();
 
+	void Running(bool IsRunning);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRunning(bool IsRunning);
+
+	UPROPERTY(Replicated)
+	bool bIsRunning;
+
+
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
+	bool IsPlayerRunning();
+
+	UPROPERTY(EditAnywhere)
+	float WalkingSpeed;
+
+	UPROPERTY(EditAnywhere)
+	float RunningSpeed;
+
 
 };

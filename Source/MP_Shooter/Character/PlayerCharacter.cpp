@@ -12,6 +12,7 @@
 #include "Net/UnrealNetwork.h"
 #include "MP_Shooter/Weapon/Weapon.h"
 #include "MP_Shooter/ShooterComponents/CombatComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -35,6 +36,13 @@ APlayerCharacter::APlayerCharacter()
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
+
+	WalkingSpeed = 350.f;
+	RunningSpeed = 950.f;
+	bIsRunning = false;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECR_Ignore);
 }
 
 
@@ -53,7 +61,7 @@ void APlayerCharacter::PostInitializeComponents()
 
 	if (Combat)
 	{
-		Combat->PlayerCharacter = this;
+		Combat->playerCharacter = this;
 	}
 }
 
@@ -73,7 +81,7 @@ void APlayerCharacter::BeginPlay()
 			subsystem->AddMappingContext(InputMappingContext, 0);
 		}
 	}
-
+	
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;	
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
@@ -103,7 +111,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		}
 		if (RunAction)
 		{
-			EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Run);
+			EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &APlayerCharacter::Run);
 			EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &APlayerCharacter::StopRun);
 		}
 		if (FireAction)
@@ -126,7 +134,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		if (AimAction)
 		{
 			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &APlayerCharacter::AimButtonPressed);
-			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &APlayerCharacter::AimButtonReleased);
+			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &APlayerCharacter::AimButtonReleased);
 		}
 	}
 
@@ -159,16 +167,17 @@ void APlayerCharacter::Run(const FInputActionValue& value)
 
 	if (PlayerController && currentValue)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 950.f;
+		bIsRunning = true;
+		Running(bIsRunning);
 	}
 }
 
 void APlayerCharacter::StopRun(const FInputActionValue& value)
 {
-
 	if (PlayerController)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 550.f;
+		bIsRunning = false;
+		Running(bIsRunning);
 	}
 }
 
@@ -219,6 +228,7 @@ void APlayerCharacter::AimButtonPressed(const FInputActionValue& value)
 	if (Combat)
 	{
 		Combat->SetAiming(true);
+		GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
 }
 
@@ -227,6 +237,7 @@ void APlayerCharacter::AimButtonReleased(const FInputActionValue& value)
 	if (Combat)
 	{
 		Combat->SetAiming(false);
+		GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
 }
 
@@ -254,6 +265,33 @@ void APlayerCharacter::ServerInteractButtonPressed_Implementation()
 	}
 }
 
+void APlayerCharacter::Running(bool IsRunning)
+{
+	ServerRunning(bIsRunning);
+	if (IsRunning)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkingSpeed;
+	}
+}
+
+void APlayerCharacter::ServerRunning_Implementation(bool IsRunning)
+{
+	if (IsRunning)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkingSpeed;
+	}
+}
+
+
+
 void APlayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if (OverlappingWeapon)
@@ -280,5 +318,10 @@ bool APlayerCharacter::IsWeaponEquipped()
 bool APlayerCharacter::IsAiming()
 {
 	return (Combat && Combat->bAiming);
+}
+
+bool APlayerCharacter::IsPlayerRunning()
+{
+	return bIsRunning;
 }
 

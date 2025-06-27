@@ -34,7 +34,22 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 {
 	bAiming = bIsAiming;
 	ServerSetAiming(bIsAiming);
-	
+
+	if (playerCharacter && bIsAiming)
+	{
+		playerCharacter->GetCharacterMovement()->MaxWalkSpeed = playerCharacter->WalkingSpeed;
+		playerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	}	
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
+{
+	bAiming = bIsAiming;
+	if (playerCharacter && bIsAiming)
+	{
+		playerCharacter->GetCharacterMovement()->MaxWalkSpeed = playerCharacter->WalkingSpeed;
+		playerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -46,10 +61,6 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
-void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
-{
-	bAiming = bIsAiming;
-}
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {

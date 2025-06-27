@@ -38,6 +38,9 @@ private:
 	bool bIsCrouched;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = true))
+	bool bIsRunning;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = true))
 	bool bIsAiming;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = true))

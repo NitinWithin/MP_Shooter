@@ -41,6 +41,8 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsAiming = playerCharacter->IsAiming();
 
+	bIsRunning = playerCharacter->IsPlayerRunning();
+
 	//YawOffset Calculations
 	FRotator AimRotation = playerCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(playerCharacter->GetVelocity());
