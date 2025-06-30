@@ -13,6 +13,7 @@
 #include "MP_Shooter/Weapon/Weapon.h"
 #include "MP_Shooter/ShooterComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -91,6 +92,8 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	AimOffset(DeltaTime);
 
 }
 
@@ -207,7 +210,6 @@ void APlayerCharacter::Interact(const FInputActionValue& value)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Client call"));
 			ServerInteractButtonPressed();
 		}
 	}
@@ -243,6 +245,42 @@ void APlayerCharacter::AimButtonReleased(const FInputActionValue& value)
 
 void APlayerCharacter::Shoot(const FInputActionValue& value)
 {
+}
+
+void APlayerCharacter::AimOffset(float DeltaTime)
+{
+	if (Combat && Combat->EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0;
+	float speed = Velocity.Size();
+	bool bisInAir = GetCharacterMovement()->IsFalling();
+
+	if (speed == 0.f && !bisInAir) // Standing still & not jumping
+	{
+		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartAimRotation);
+		AO_Yaw = DeltaRotation.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+	if (speed > 0.f || bisInAir) // Running or Jumping 
+	{
+		StartAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f;
+		bUseControllerRotationYaw = true;
+	}
+
+	AO_Pitch = GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		//Change values on Server to correct orientation of Pitch
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
 }
 
 void APlayerCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
@@ -290,8 +328,6 @@ void APlayerCharacter::ServerRunning_Implementation(bool IsRunning)
 	}
 }
 
-
-
 void APlayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if (OverlappingWeapon)
@@ -307,7 +343,6 @@ void APlayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 			OverlappingWeapon->ShowPickUpWidget(true);
 		}
 	}
-
 }
 
 bool APlayerCharacter::IsWeaponEquipped()

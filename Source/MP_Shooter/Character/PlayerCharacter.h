@@ -26,6 +26,21 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	/*Input*/
+	void Move(const FInputActionValue& value);
+	void Run(const FInputActionValue& value);
+	void StopRun(const FInputActionValue& value);
+	void Look(const FInputActionValue& value);
+	void Interact(const FInputActionValue& value);
+	void CrouchButtonPressed(const FInputActionValue& value);
+	void CrouchButtonReleased(const FInputActionValue& value);
+	void AimButtonPressed(const FInputActionValue& value);
+	void AimButtonReleased(const FInputActionValue& value);
+	void Shoot(const FInputActionValue& value);
+	/*Input*/
+
+	void AimOffset(float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -68,16 +83,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float TurnRate = 100;
 
-	void Move(const FInputActionValue& value);
-	void Run(const FInputActionValue& value);
-	void StopRun(const FInputActionValue& value);
-	void Look(const FInputActionValue& value);
-	void Interact(const FInputActionValue& value);
-	void CrouchButtonPressed(const FInputActionValue& value);
-	void CrouchButtonReleased(const FInputActionValue& value);
-	void AimButtonPressed(const FInputActionValue& value);
-	void AimButtonReleased(const FInputActionValue& value);
-	void Shoot(const FInputActionValue& value);
+
 
 	/* INPUT */
 
@@ -104,12 +110,17 @@ private:
 	UPROPERTY(Replicated)
 	bool bIsRunning;
 
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartAimRotation;
 
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	bool IsPlayerRunning();
+	FORCEINLINE float GET_AO_YAW() const { return AO_Yaw; };
+	FORCEINLINE float GET_AO_Pitch() const { return AO_Pitch; };
 
 	UPROPERTY(EditAnywhere)
 	float WalkingSpeed;
