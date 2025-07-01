@@ -360,3 +360,12 @@ bool APlayerCharacter::IsPlayerRunning()
 	return bIsRunning;
 }
 
+AWeapon* APlayerCharacter::GetEquippedWeapon()
+{
+	if (Combat == nullptr)
+	{
+		return nullptr;
+	}
+	return Combat->EquippedWeapon;
+}
+

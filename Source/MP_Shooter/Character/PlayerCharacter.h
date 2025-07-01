@@ -128,5 +128,5 @@ public:
 	UPROPERTY(EditAnywhere)
 	float RunningSpeed;
 
-
+	AWeapon* GetEquippedWeapon();
 };
