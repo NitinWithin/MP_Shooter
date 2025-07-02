@@ -86,6 +86,8 @@ void APlayerCharacter::BeginPlay()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;	
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 // Called every frame
@@ -94,7 +96,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -265,12 +266,19 @@ void APlayerCharacter::AimOffset(float DeltaTime)
 		FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartAimRotation);
 		AO_Yaw = DeltaRotation.Yaw;
 		bUseControllerRotationYaw = false;
+		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
+		{
+			Interp_AO_Yaw = AO_Yaw;
+		}
+		TurnInPlace(DeltaTime);
 	}
 	if (speed > 0.f || bisInAir) // Running or Jumping 
 	{
 		StartAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
+		
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
@@ -280,6 +288,28 @@ void APlayerCharacter::AimOffset(float DeltaTime)
 		FVector2D InRange(270.f, 360.f);
 		FVector2D OutRange(-90.f, 0.f);
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
+}
+
+void APlayerCharacter::TurnInPlace(float DeltaTime)
+{
+	if (AO_Yaw > 45.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Right;
+	}
+	else if (AO_Yaw < -45.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Left;
+	}
+	if (TurningInPlace != ETurningInPlace::ETIP_NotTurning)
+	{
+		Interp_AO_Yaw = FMath::FInterpTo(Interp_AO_Yaw, 0.f, DeltaTime, 10.f);
+		AO_Yaw = Interp_AO_Yaw;
+		if (FMath::Abs(AO_Yaw) < 15.f)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			StartAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}
 	}
 }
 

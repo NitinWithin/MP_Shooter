@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "MP_Shooter/MP_ShooterTypes/TurningInPlace.h"
 #include "PlayerCharacter.generated.h"
 
 class UInputAction;
@@ -83,8 +84,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	float TurnRate = 100;
 
-
-
 	/* INPUT */
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -111,8 +110,12 @@ private:
 	bool bIsRunning;
 
 	float AO_Yaw;
+	float Interp_AO_Yaw;
 	float AO_Pitch;
 	FRotator StartAimRotation;
+
+	ETurningInPlace TurningInPlace;
+	void TurnInPlace(float DeltaTime);
 
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -129,4 +132,5 @@ public:
 	float RunningSpeed;
 
 	AWeapon* GetEquippedWeapon();
+	FORCEINLINE ETurningInPlace Get_TurningInPlace() const { return TurningInPlace; };
 };

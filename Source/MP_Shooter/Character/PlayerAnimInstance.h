@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "MP_Shooter/MP_ShooterTypes/TurningInPlace.h"
 #include "PlayerAnimInstance.generated.h"
 
 /**
@@ -63,4 +64,7 @@ private:
 	FRotator CharacterRotationLastFrame;
 	FRotator CharacterRotation;
 	FRotator DeltaRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = true))
+	ETurningInPlace TurningInPlace;
 };
