@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "MP_Shooter/Character/PlayerCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -40,18 +41,75 @@ void AWeapon::BeginPlay()
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); 
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECR_Overlap);
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
+	}
+	if (PickUpWidget)
+	{
+		PickUpWidget->SetVisibility(false);
 	}
 	
 }
 
-void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeapon, WeaponState);
 }
 
-// Called every frame
-void AWeapon::Tick(float DeltaTime)
+void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::Tick(DeltaTime);
+	APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(OtherActor);
+	if (playerCharacter)
+	{
+		playerCharacter->SetOverlappingWeapon(this);
+	}
+}
 
+void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(OtherActor);
+	if (playerCharacter)
+	{
+		playerCharacter->SetOverlappingWeapon(nullptr);
+	}
+}
+
+void AWeapon::OnRep_WeaponState()
+{
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickUpWidget(false);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_Dropped:
+		ShowPickUpWidget(true);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EWeaponState::EWS_Initial:
+		
+		break;
+	}
+}
+
+void AWeapon::SetWeaponState(EWeaponState state)
+{
+	WeaponState = state;
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickUpWidget(false);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	}
+}
+
+void AWeapon::ShowPickUpWidget(bool bShowWidget)
+{
+	if (PickUpWidget)
+	{
+		PickUpWidget->SetVisibility(bShowWidget);
+	}
 }
 
