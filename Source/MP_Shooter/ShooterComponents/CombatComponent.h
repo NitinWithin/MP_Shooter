@@ -32,6 +32,8 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
+	void Shoot(bool bPressed);
+
 private:
 	class APlayerCharacter* playerCharacter;
 
@@ -40,6 +42,8 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bAiming;
+
+	bool bIsShooting;
 
 public:	
 	void EquipWeapon(AWeapon* WeaponToEquip);

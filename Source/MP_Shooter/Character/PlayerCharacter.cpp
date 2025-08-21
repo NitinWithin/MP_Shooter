@@ -14,6 +14,7 @@
 #include "MP_Shooter/ShooterComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "PlayerAnimInstance.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -122,7 +123,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		}
 		if (FireAction)
 		{
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Shoot);
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &APlayerCharacter::Shoot);
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &APlayerCharacter::StopShooting);
 		}
 		if (JumpAction)
 		{
@@ -248,6 +250,18 @@ void APlayerCharacter::AimButtonReleased(const FInputActionValue& value)
 
 void APlayerCharacter::Shoot(const FInputActionValue& value)
 {
+	if (Combat)
+	{
+		Combat->Shoot(true);
+	}
+}
+
+void APlayerCharacter::StopShooting(const FInputActionValue& value)
+{
+	if (Combat)
+	{
+		Combat->Shoot(false);
+	}
 }
 
 void APlayerCharacter::AimOffset(float DeltaTime)
@@ -401,3 +415,19 @@ AWeapon* APlayerCharacter::GetEquippedWeapon()
 	return Combat->EquippedWeapon;
 }
 
+void APlayerCharacter::PlayFireMontage(bool IsAiming)
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName SectionName;
+		SectionName = IsAiming ? FName("AimFire") : FName("HipFire");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
