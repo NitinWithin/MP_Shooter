@@ -2,4 +2,41 @@
 
 
 #include "ProjectileWeapon.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "Projectile.h"
 
+void AProjectileWeapon::Fire(const FVector& HitTarget)
+{
+	Super::Fire(HitTarget);
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	APawn* InstigatorPawn = Cast<APawn>(GetOwner());
+	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
+	
+	if (MuzzleFlashSocket)
+	{
+		FTransform MuzzleTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+		FVector ToTarget = HitTarget - MuzzleTransform.GetLocation();
+		FRotator TargetRotation = ToTarget.Rotation();
+		if (ProjectileClass && InstigatorPawn)
+		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = GetOwner();
+			SpawnParams.Instigator = InstigatorPawn;
+			UWorld* world = GetWorld();
+			if (world)
+			{
+				world->SpawnActor<AProjectile>(
+					ProjectileClass,
+					MuzzleTransform.GetLocation(),
+					TargetRotation,
+					SpawnParams
+				);
+			}
+		}
+	}
+}
