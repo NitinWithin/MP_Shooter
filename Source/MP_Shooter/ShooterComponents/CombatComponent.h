@@ -36,10 +36,10 @@ protected:
 	void Shoot(bool bPressed);
 
 	UFUNCTION(Server, Reliable)
-	void ServerFire();
+	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire();
+	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	void TraceTheCrossHair(FHitResult& TraceHitResult);
 
@@ -53,8 +53,6 @@ private:
 	bool bAiming;
 
 	bool bIsShooting;
-
-	FVector HitTarget;
 
 public:	
 	void EquipWeapon(AWeapon* WeaponToEquip);

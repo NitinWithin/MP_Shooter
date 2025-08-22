@@ -281,7 +281,7 @@ void APlayerCharacter::AimOffset(float DeltaTime)
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartAimRotation);
 		AO_Yaw = DeltaRotation.Yaw;
-		bUseControllerRotationYaw = false;
+		bUseControllerRotationYaw = true;
 		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
 		{
 			Interp_AO_Yaw = AO_Yaw;
@@ -321,7 +321,8 @@ void APlayerCharacter::TurnInPlace(float DeltaTime)
 	{
 		Interp_AO_Yaw = FMath::FInterpTo(Interp_AO_Yaw, 0.f, DeltaTime, 4.f);
 		AO_Yaw = Interp_AO_Yaw;
-		if (FMath::Abs(AO_Yaw) < 15.f)
+		// When to stop turning
+		if (FMath::Abs(AO_Yaw) < 5.f)
 		{
 			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 			StartAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);

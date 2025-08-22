@@ -5,11 +5,11 @@
 #include "MP_Shooter/Weapon/Weapon.h"
 #include "MP_Shooter/Character/PlayerCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
-#include "Components/SphereComponent.h"
+//#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "DrawDebugHelpers.h"
+//#include "DrawDebugHelpers.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -22,8 +22,6 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FHitResult HitResult;
-	TraceTheCrossHair(HitResult);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -77,7 +75,9 @@ void UCombatComponent::Shoot(bool bPressed)
 
 	if (bIsShooting)
 	{
-		ServerFire();
+		FHitResult HitResult;
+		TraceTheCrossHair(HitResult);
+		ServerFire(HitResult.ImpactPoint);
 	}
 
 }
@@ -110,27 +110,16 @@ void UCombatComponent::TraceTheCrossHair(FHitResult& TraceHitResult)
 			Start,
 			End,
 			ECollisionChannel::ECC_Visibility
-		);
-
-		if (!TraceHitResult.bBlockingHit)
-		{
-			TraceHitResult.ImpactPoint = End;
-			HitTarget = End;
-		}
-		else
-		{
-			HitTarget = TraceHitResult.ImpactPoint;
-			/*DrawDebugSphere(
-				GetWorld(),
-				TraceHitResult.ImpactPoint,
-				12.f,
-				12.f,
-				FColor::Red);*/
-		}
+		); 
 	}
 }
 
-void UCombatComponent::MulticastFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	MulticastFire(TraceHitTarget);
+}
+
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (EquippedWeapon == nullptr)
 	{
@@ -140,14 +129,10 @@ void UCombatComponent::MulticastFire_Implementation()
 	if (playerCharacter)
 	{
 		playerCharacter->PlayFireMontage(bAiming);
-		EquippedWeapon->Fire(HitTarget);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
 }
 
-void UCombatComponent::ServerFire_Implementation()
-{
-	MulticastFire();
-}
 
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
