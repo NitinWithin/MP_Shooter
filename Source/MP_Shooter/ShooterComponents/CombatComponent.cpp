@@ -5,14 +5,22 @@
 #include "MP_Shooter/Weapon/Weapon.h"
 #include "MP_Shooter/Character/PlayerCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
-#include "Components/SphereComponent.h"
+//#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+//#include "DrawDebugHelpers.h"
 
 
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
+
+}
+
+void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 }
 
@@ -60,6 +68,71 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		playerCharacter->bUseControllerRotationYaw = true;
 	}
 }
+
+void UCombatComponent::Shoot(bool bPressed)
+{
+	bIsShooting = bPressed;
+
+	if (bIsShooting)
+	{
+		FHitResult HitResult;
+		TraceTheCrossHair(HitResult);
+		ServerFire(HitResult.ImpactPoint);
+	}
+
+}
+
+void UCombatComponent::TraceTheCrossHair(FHitResult& TraceHitResult)
+{
+	FVector2D ViewportSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	FVector2D CrossHairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+	FVector CrossHairWorldPosition, CrossHairWorldDirection;
+
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+		UGameplayStatics::GetPlayerController(this, 0),
+		CrossHairLocation,
+		CrossHairWorldPosition,
+		CrossHairWorldDirection
+	);
+
+	if (bScreenToWorld)
+	{
+		FVector Start = CrossHairWorldPosition;
+		FVector End = Start + CrossHairWorldDirection * TRACE_LENGTH;
+
+		GetWorld()->LineTraceSingleByChannel(
+			TraceHitResult,
+			Start,
+			End,
+			ECollisionChannel::ECC_Visibility
+		); 
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	MulticastFire(TraceHitTarget);
+}
+
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	if (playerCharacter)
+	{
+		playerCharacter->PlayFireMontage(bAiming);
+		EquippedWeapon->Fire(TraceHitTarget);
+	}
+}
+
 
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)

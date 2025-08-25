@@ -63,9 +63,17 @@ private:
 
 	UFUNCTION()
 	void OnRep_WeaponState();
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	class UAnimationAsset* FireAnimation;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AAmmoShell> AmmoCasingClass;
 		
 public:	
 	void SetWeaponState(EWeaponState state);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+
+	virtual void Fire(const FVector& HitTarget);
 };

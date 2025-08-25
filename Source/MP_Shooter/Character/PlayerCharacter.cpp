@@ -14,6 +14,7 @@
 #include "MP_Shooter/ShooterComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "PlayerAnimInstance.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -122,7 +123,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		}
 		if (FireAction)
 		{
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Shoot);
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &APlayerCharacter::Shoot);
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &APlayerCharacter::StopShooting);
 		}
 		if (JumpAction)
 		{
@@ -248,6 +250,18 @@ void APlayerCharacter::AimButtonReleased(const FInputActionValue& value)
 
 void APlayerCharacter::Shoot(const FInputActionValue& value)
 {
+	if (Combat)
+	{
+		Combat->Shoot(true);
+	}
+}
+
+void APlayerCharacter::StopShooting(const FInputActionValue& value)
+{
+	if (Combat)
+	{
+		Combat->Shoot(false);
+	}
 }
 
 void APlayerCharacter::AimOffset(float DeltaTime)
@@ -267,7 +281,7 @@ void APlayerCharacter::AimOffset(float DeltaTime)
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartAimRotation);
 		AO_Yaw = DeltaRotation.Yaw;
-		bUseControllerRotationYaw = false;
+		bUseControllerRotationYaw = true;
 		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
 		{
 			Interp_AO_Yaw = AO_Yaw;
@@ -307,7 +321,8 @@ void APlayerCharacter::TurnInPlace(float DeltaTime)
 	{
 		Interp_AO_Yaw = FMath::FInterpTo(Interp_AO_Yaw, 0.f, DeltaTime, 4.f);
 		AO_Yaw = Interp_AO_Yaw;
-		if (FMath::Abs(AO_Yaw) < 15.f)
+		// When to stop turning
+		if (FMath::Abs(AO_Yaw) < 5.f)
 		{
 			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 			StartAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
@@ -401,3 +416,19 @@ AWeapon* APlayerCharacter::GetEquippedWeapon()
 	return Combat->EquippedWeapon;
 }
 
+void APlayerCharacter::PlayFireMontage(bool IsAiming)
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName SectionName;
+		SectionName = IsAiming ? FName("AimFire") : FName("HipFire");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
