@@ -4,6 +4,7 @@
 #include "ProjectileWeapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Projectile.h"
+#include "MP_Shooter/Character/PlayerCharacter.h"
 
 void AProjectileWeapon::Fire(const FVector& HitTarget)
 {
@@ -22,6 +23,13 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 		FTransform MuzzleTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		FVector ToTarget = HitTarget - MuzzleTransform.GetLocation();
 		FRotator TargetRotation = ToTarget.Rotation();
+
+		playerCharacter = Cast<APlayerCharacter>(GetOwner());
+		if (playerCharacter && !playerCharacter->IsAiming())
+		{
+			TargetRotation += AddRandomRotation();
+		}
+
 		if (ProjectileClass && InstigatorPawn)
 		{
 			FActorSpawnParameters SpawnParams;
@@ -34,9 +42,20 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 					ProjectileClass,
 					MuzzleTransform.GetLocation(),
 					TargetRotation,
-					SpawnParams
-				);
+					SpawnParams);
 			}
 		}
 	}
+}
+
+
+FRotator AProjectileWeapon::AddRandomRotation()
+{
+	FRotator RandRotation = FRotator::ZeroRotator;
+
+	RandRotation.Pitch = FMath::RandRange(-MaxRange, MaxRange);
+	RandRotation.Yaw = FMath::RandRange(-MaxRange, MaxRange);
+	RandRotation.Roll = FMath::RandRange(-MaxRange, MaxRange);
+	
+	return RandRotation;
 }
