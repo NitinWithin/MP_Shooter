@@ -53,9 +53,9 @@ FRotator AProjectileWeapon::AddRandomRotation()
 {
 	FRotator RandRotation = FRotator::ZeroRotator;
 
-	RandRotation.Pitch = FMath::RandRange(-MaxRange, MaxRange);
-	RandRotation.Yaw = FMath::RandRange(-MaxRange, MaxRange);
-	RandRotation.Roll = FMath::RandRange(-MaxRange, MaxRange);
+	RandRotation.Pitch = FMath::RandRange(-MaxBulletSpreadRange, MaxBulletSpreadRange);
+	RandRotation.Yaw = FMath::RandRange(-MaxBulletSpreadRange, MaxBulletSpreadRange);
+	RandRotation.Roll = FMath::RandRange(-MaxBulletSpreadRange, MaxBulletSpreadRange);
 	
 	return RandRotation;
 }

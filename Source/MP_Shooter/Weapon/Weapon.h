@@ -69,11 +69,29 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AAmmoShell> AmmoCasingClass;
-		
+
 public:	
 	void SetWeaponState(EWeaponState state);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 
 	virtual void Fire(const FVector& HitTarget);
+
+	/*Textures for the weapon crosshairs*/
+		
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	class UTexture2D* CrosshairCenter;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	UTexture2D* CrosshairTop;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	UTexture2D* CrosshairBottom;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	UTexture2D* CrosshairRight;
+
+	UPROPERTY(EditAnywhere, Category = "CrossHair")
+	UTexture2D* CrosshairLeft;
+
 };

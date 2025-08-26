@@ -43,8 +43,12 @@ protected:
 
 	void TraceTheCrossHair(FHitResult& TraceHitResult);
 
+	void SetHUDCrosshair(float DeltaTime);
+
 private:
 	class APlayerCharacter* playerCharacter;
+	class APlayerCharacterController* playerController;
+	class APlayerHUD* playerHUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
@@ -53,6 +57,13 @@ private:
 	bool bAiming;
 
 	bool bIsShooting;
+
+	/*
+		HUD and Crosshair	
+	*/
+
+	float CrosshairVelocityFactor;
+	float CrosshairInAirFactor;
 
 public:	
 	void EquipWeapon(AWeapon* WeaponToEquip);
