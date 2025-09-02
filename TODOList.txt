@@ -1,0 +1,11 @@
+
+
+/* Fixes needed */ 
+1. Fix AiM animations.
+2. Fix Shooting while running
+3. Fix gun position when aiming crosshair at sky
+4. Stop shooting when running or Stop runnning when shooting
+
+
+/* Additional Changes to add */
+1. FootSounds when moving

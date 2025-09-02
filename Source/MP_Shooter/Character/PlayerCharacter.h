@@ -139,4 +139,8 @@ public:
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const { return TurningInPlace; };
 
 	void PlayFireMontage(bool IsAiming);
+
+	FVector GetHitTarget() const;
+
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return Camera; }
 };

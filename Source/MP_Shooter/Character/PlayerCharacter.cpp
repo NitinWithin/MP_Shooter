@@ -432,3 +432,13 @@ void APlayerCharacter::PlayFireMontage(bool IsAiming)
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
+
+FVector APlayerCharacter::GetHitTarget() const
+{
+	if (Combat == nullptr)
+	{
+		return FVector();
+	}
+
+	return Combat->HitTarget;
+}

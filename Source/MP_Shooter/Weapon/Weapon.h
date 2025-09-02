@@ -70,15 +70,35 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AAmmoShell> AmmoCasingClass;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	float WeaponCrossHairSpreadDefault;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	float CrossHairShootingSpread;
+
+/*
+	Zoomed FOV for weapons while aiming
+*/
+	UPROPERTY(EditAnywhere, Category = "Weapon Zoom")
+	float ZoomFov;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon Zoom")
+	float ZoomInterpSpeed;
+
+
 public:	
 	void SetWeaponState(EWeaponState state);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE float GetZoomFOV() const { return ZoomFov; }
+	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	FORCEINLINE float GetDefaultWeaponSpread() const { return WeaponCrossHairSpreadDefault; }
+	FORCEINLINE float GetShootingSpread() const { return CrossHairShootingSpread; }
 
 	virtual void Fire(const FVector& HitTarget);
 
 	/*Textures for the weapon crosshairs*/
-		
+
 	UPROPERTY(EditAnywhere, Category = "CrossHair")
 	class UTexture2D* CrosshairCenter;
 
@@ -93,5 +113,4 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "CrossHair")
 	UTexture2D* CrosshairLeft;
-
 };

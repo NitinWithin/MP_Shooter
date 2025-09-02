@@ -33,6 +33,12 @@ AWeapon::AWeapon()
 
 	PickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	PickUpWidget->SetupAttachment(RootComponent);
+
+	//Set Default Values
+	ZoomFov = 30.f;
+	ZoomInterpSpeed = 20.f;
+	WeaponCrossHairSpreadDefault = 0.8f;
+	CrossHairShootingSpread = 0.9f;
 }
 
 // Called when the game starts or when spawned

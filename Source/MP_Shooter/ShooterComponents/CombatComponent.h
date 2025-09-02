@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
-#define TRACE_LENGTH 80000
+#define TRACE_LENGTH 8000000
 
 class AWeapon;
 
@@ -64,6 +64,24 @@ private:
 
 	float CrosshairVelocityFactor;
 	float CrosshairInAirFactor;
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
+
+	FVector HitTarget;
+	FVector NoHitTarget;
+
+	/* Aiming and Fov */
+
+	float DefaultFOV;
+	float CurrentFOV;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ZoomedFOV = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ZoomInterpSpeed = 20.f;
+
+	void InterpFOV(float DeltaTime);
 
 public:	
 	void EquipWeapon(AWeapon* WeaponToEquip);
