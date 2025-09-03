@@ -9,7 +9,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MP_Shooter/PlayerController/PlayerCharacterController.h"
-#include "MP_Shooter/HUD/PlayerHUD.h"
 #include "Camera/CameraComponent.h"
 
 
@@ -74,7 +73,6 @@ void UCombatComponent::SetHUDCrosshair(float DeltaTime)
 
 		if (playerHUD)
 		{
-			FHUDPackage HUDPackage;
 			float DefaultWeaponSpread = 0.f;
 			if (EquippedWeapon)
 			{
@@ -197,6 +195,11 @@ void UCombatComponent::TraceTheCrossHair(FHitResult& TraceHitResult)
 	);
 
 	FVector Start = CrossHairWorldPosition;
+	if (playerCharacter)
+	{
+		float DistanceToPlayer = (playerCharacter->GetActorLocation() - Start).Size();
+		Start += CrossHairWorldDirection * (DistanceToPlayer + 50.f);
+	}
 	FVector End = Start + CrossHairWorldDirection * TRACE_LENGTH;
 
 	if (bScreenToWorld)
@@ -207,6 +210,15 @@ void UCombatComponent::TraceTheCrossHair(FHitResult& TraceHitResult)
 			End,
 			ECollisionChannel::ECC_Visibility
 		); 
+
+		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UCrosshairInteractionInterface>())
+		{
+			HUDPackage.CrosshairColor = FLinearColor::Red;
+		}
+		else
+		{
+			HUDPackage.CrosshairColor = FLinearColor::White;
+		}
 	}
 	// If LineTrace doesnt hit anything, we set it to the END and set it to HITTARGET in the Tick
 	NoHitTarget = End;

@@ -15,6 +15,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PlayerAnimInstance.h"
+#include "MP_Shooter/MP_Shooter.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -45,6 +46,9 @@ APlayerCharacter::APlayerCharacter()
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECR_Block);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
+
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 }
@@ -99,6 +103,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
+	HidePlayerWhenCameraClose();
 }
 
 // Called to bind functionality to input
@@ -375,6 +380,30 @@ void APlayerCharacter::ServerRunning_Implementation(bool IsRunning)
 	}
 }
 
+void APlayerCharacter::HidePlayerWhenCameraClose()
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+	if ((Camera->GetComponentLocation() - GetActorLocation()).Size() < cameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+		if (Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if (Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+	}
+}
+
 void APlayerCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if (OverlappingWeapon)
@@ -431,6 +460,28 @@ void APlayerCharacter::PlayFireMontage(bool IsAiming)
 		SectionName = IsAiming ? FName("AimFire") : FName("HipFire");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
+}
+
+void APlayerCharacter::PlayHitReactMontage()
+{
+	if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
+	{
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName("FromFront");
+		//SectionName = IsAiming ? FName("AimFire") : FName("HipFire");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void APlayerCharacter::Multicast_HitReact_Implementation()
+{
+	PlayHitReactMontage();
 }
 
 FVector APlayerCharacter::GetHitTarget() const

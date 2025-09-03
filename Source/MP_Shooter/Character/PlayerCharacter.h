@@ -6,13 +6,14 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "MP_Shooter/MP_ShooterTypes/TurningInPlace.h"
+#include "MP_Shooter/Interfaces/CrosshairInteractionInterface.h"
 #include "PlayerCharacter.generated.h"
 
 class UInputAction;
 class AWeapon;
 
 UCLASS()
-class MP_SHOOTER_API APlayerCharacter : public ACharacter
+class MP_SHOOTER_API APlayerCharacter : public ACharacter, public ICrosshairInteractionInterface
 {
 	GENERATED_BODY()
 
@@ -43,6 +44,8 @@ protected:
 	/*Input*/
 
 	void AimOffset(float DeltaTime);
+
+	void PlayHitReactMontage();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -121,13 +124,24 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	class UAnimMontage* FireWeaponMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* HitReactMontage;
+
+	void HidePlayerWhenCameraClose();
+
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	float cameraThreshold = 200.f;
+
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	bool IsPlayerRunning();
+	
 	FORCEINLINE float GET_AO_YAW() const { return AO_Yaw; };
 	FORCEINLINE float GET_AO_Pitch() const { return AO_Pitch; };
+	FORCEINLINE ETurningInPlace Get_TurningInPlace() const { return TurningInPlace; };
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return Camera; }
 
 	UPROPERTY(EditAnywhere)
 	float WalkingSpeed;
@@ -136,11 +150,11 @@ public:
 	float RunningSpeed;
 
 	AWeapon* GetEquippedWeapon();
-	FORCEINLINE ETurningInPlace Get_TurningInPlace() const { return TurningInPlace; };
-
-	void PlayFireMontage(bool IsAiming);
 
 	FVector GetHitTarget() const;
 
-	FORCEINLINE UCameraComponent* GetFollowCamera() const { return Camera; }
+	void PlayFireMontage(bool IsAiming);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_HitReact();
 };

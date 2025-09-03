@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "MP_Shooter/HUD/PlayerHUD.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 8000000
@@ -74,6 +75,8 @@ private:
 
 	float DefaultFOV;
 	float CurrentFOV;
+
+	FHUDPackage HUDPackage;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float ZoomedFOV = 30.f;
