@@ -17,8 +17,6 @@ class MP_SHOOTER_API AProjectileWeapon : public AWeapon
 public: 
 	virtual void Fire(const FVector& HitTarget) override;
 
-protected:
-	virtual void BeginPlay() override;
 private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AProjectile> ProjectileClass;
@@ -27,5 +25,5 @@ private:
 	FRotator AddRandomRotation();
 
 	UPROPERTY(EditAnywhere)
-	double MaxRange;
+	double MaxBulletSpreadRange = 3;
 };

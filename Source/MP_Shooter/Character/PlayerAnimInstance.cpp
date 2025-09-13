@@ -47,6 +47,8 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsRunning = playerCharacter->IsPlayerRunning();
 	TurningInPlace = playerCharacter->Get_TurningInPlace();
 
+	bRotateRootBone = playerCharacter->bShouldRotateRootBone();
+
 	//YawOffset Calculations
 	FRotator AimRotation = playerCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(playerCharacter->GetVelocity());
@@ -73,5 +75,13 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		playerCharacter->GetMesh()->TransformToBoneSpace(FName("Hand_R"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+		if (playerCharacter->IsLocallyControlled())
+		{
+			bLocallyControlled = true;
+			FTransform RightHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("Hand_R"), RTS_World);
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - playerCharacter->GetHitTarget()));
+			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaTime, 40.f);
+		}
 	}
 }

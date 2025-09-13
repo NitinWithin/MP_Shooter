@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "MP_Shooter/HUD/PlayerHUD.h"
 #include "CombatComponent.generated.h"
 
-#define TRACE_LENGTH 80000
+#define TRACE_LENGTH 8000000
 
 class AWeapon;
 
@@ -35,6 +36,8 @@ protected:
 
 	void Shoot(bool bPressed);
 
+	void FireWeapon();
+
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
@@ -43,16 +46,53 @@ protected:
 
 	void TraceTheCrossHair(FHitResult& TraceHitResult);
 
+	void SetHUDCrosshair(float DeltaTime);
+
 private:
 	class APlayerCharacter* playerCharacter;
+	class APlayerCharacterController* playerController;
+	class APlayerHUD* playerHUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
-	AWeapon* EquippedWeapon;
+	AWeapon* equippedWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;
 
 	bool bIsShooting;
+
+	/*
+		HUD and Crosshair	
+	*/
+
+	float crosshairVelocityFactor;
+	float crosshairInAirFactor;
+	float crosshairAimFactor;
+	float crosshairShootingFactor;
+
+	FVector hitTarget;
+	FVector noHitTarget;
+
+	/* Aiming and Fov */
+	float defaultFOV;
+	float currentFOV;
+	FHUDPackage HUDPackage;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float zoomedFOV = 30.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float zoomInterpSpeed = 20.f;
+
+	void InterpFOV(float DeltaTime);
+	
+	/*Auto Fire weapons*/
+	FTimerHandle weaponFireTimerHandle;
+
+	bool bCanFire;
+
+	void FireTimerStart();
+	void FireTimerEnd();
 
 public:	
 	void EquipWeapon(AWeapon* WeaponToEquip);
