@@ -3,9 +3,13 @@
 /* Fixes needed */ 
 1. Fix AiM animations.
 2. Fix Shooting while running
-3. Fix gun position when aiming crosshair at sky
-4. Stop shooting when running or Stop runnning when shooting
 
+4. player not turning on client- Proxy Yaw is 0,
+needs a fix - LogNetPlayerMovement: Warning: ClientAdjustPosition_Implementation could not resolve the new relative movement base actor, ignoring server correction! Client currently at world location X=-2628.403 Y=-1445.680 Z=89.150 on base StaticMeshComponent0
+LogTemp: Error: Turning.
+Works and sometimes doesnt, at merge is working
+
+5. Running animation triggers even without moving, needs correction.
 
 /* Additional Changes to add */
 1. FootSounds when moving

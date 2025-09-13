@@ -85,6 +85,13 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Zoom")
 	float ZoomInterpSpeed;
 
+	/*Automotic Fire*/
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float fireRateDelay;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	bool bAutomaticFire;
+
 
 public:	
 	void SetWeaponState(EWeaponState state);
@@ -94,6 +101,9 @@ public:
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	FORCEINLINE float GetDefaultWeaponSpread() const { return WeaponCrossHairSpreadDefault; }
 	FORCEINLINE float GetShootingSpread() const { return CrossHairShootingSpread; }
+	FORCEINLINE float GetFireRateDelay() const { return fireRateDelay; }
+	FORCEINLINE bool bAutomaticWeaponFire() const { return bAutomaticFire; }
+
 
 	virtual void Fire(const FVector& HitTarget);
 

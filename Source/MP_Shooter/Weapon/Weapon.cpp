@@ -39,6 +39,9 @@ AWeapon::AWeapon()
 	ZoomInterpSpeed = 20.f;
 	WeaponCrossHairSpreadDefault = 0.8f;
 	CrossHairShootingSpread = 0.9f;
+
+	fireRateDelay = 0.15f;
+	bAutomaticFire = true;
 }
 
 // Called when the game starts or when spawned

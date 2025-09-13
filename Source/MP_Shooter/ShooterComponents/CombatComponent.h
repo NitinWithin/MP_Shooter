@@ -36,6 +36,8 @@ protected:
 
 	void Shoot(bool bPressed);
 
+	void FireWeapon();
+
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
@@ -52,7 +54,7 @@ private:
 	class APlayerHUD* playerHUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
-	AWeapon* EquippedWeapon;
+	AWeapon* equippedWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;
@@ -63,28 +65,34 @@ private:
 		HUD and Crosshair	
 	*/
 
-	float CrosshairVelocityFactor;
-	float CrosshairInAirFactor;
-	float CrosshairAimFactor;
-	float CrosshairShootingFactor;
+	float crosshairVelocityFactor;
+	float crosshairInAirFactor;
+	float crosshairAimFactor;
+	float crosshairShootingFactor;
 
-	FVector HitTarget;
-	FVector NoHitTarget;
+	FVector hitTarget;
+	FVector noHitTarget;
 
 	/* Aiming and Fov */
-
-	float DefaultFOV;
-	float CurrentFOV;
-
+	float defaultFOV;
+	float currentFOV;
 	FHUDPackage HUDPackage;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ZoomedFOV = 30.f;
+	float zoomedFOV = 30.f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ZoomInterpSpeed = 20.f;
+	float zoomInterpSpeed = 20.f;
 
 	void InterpFOV(float DeltaTime);
+	
+	/*Auto Fire weapons*/
+	FTimerHandle weaponFireTimerHandle;
+
+	bool bCanFire;
+
+	void FireTimerStart();
+	void FireTimerEnd();
 
 public:	
 	void EquipWeapon(AWeapon* WeaponToEquip);

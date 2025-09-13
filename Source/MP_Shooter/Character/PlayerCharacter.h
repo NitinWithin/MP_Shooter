@@ -25,6 +25,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 
+	virtual void OnRep_ReplicatedMovement() override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -44,14 +46,17 @@ protected:
 	/*Input*/
 
 	void AimOffset(float DeltaTime);
+	void Calculate_AO_Pitch();
+	float Calculate_Speed();
+	void TurnSimProxies();
 
 	void PlayHitReactMontage();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class USpringArmComponent* CameraBoom;
+	class USpringArmComponent* cameraBoom;
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	class UCameraComponent* Camera;
+	class UCameraComponent* camera;
 											
 	
 	APlayerController* PlayerController;
@@ -59,48 +64,48 @@ private:
 	/* INPUT */
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	class UInputMappingContext* InputMappingContext;
+	class UInputMappingContext* inputMappingContext;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* MoveAction;
+	UInputAction* moveAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* RunAction;
+	UInputAction* runAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* LookAction;
+	UInputAction* lookAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* JumpAction;
+	UInputAction* jumpAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* FireAction;
+	UInputAction* fireAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* InteractAction;
+	UInputAction* interactAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* CrouchAction;
+	UInputAction* crouchAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* AimAction;
+	UInputAction* aimAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	float TurnRate = 100;
+	float turnRate;
 
 	/* INPUT */
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* OverheadWidget;
+	class UWidgetComponent*overheadWidget;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
-	AWeapon* OverlappingWeapon;
+	AWeapon* overlappingWeapon;
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	UPROPERTY(VisibleAnywhere)
-	class UCombatComponent* Combat;
+	class UCombatComponent* combat;
 
 	UFUNCTION(Server, Reliable)
 	void ServerInteractButtonPressed();
@@ -114,23 +119,30 @@ private:
 	bool bIsRunning;
 
 	float AO_Yaw;
-	float Interp_AO_Yaw;
+	float interp_AO_Yaw;
 	float AO_Pitch;
-	FRotator StartAimRotation;
+	FRotator startAimRotation;
 
-	ETurningInPlace TurningInPlace;
+	ETurningInPlace turningInPlace;
 	void TurnInPlace(float DeltaTime);
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	class UAnimMontage* FireWeaponMontage;
+	class UAnimMontage* fireWeaponMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	UAnimMontage* HitReactMontage;
+	UAnimMontage* hitReactMontage;
 
 	void HidePlayerWhenCameraClose();
 
 	UPROPERTY(EditAnywhere, Category = "Camera")
-	float cameraThreshold = 200.f;
+	float cameraThreshold;
+
+	bool bRotateRootBone;
+	float turnThreshold;
+	FRotator proxyRotationLastFrame;
+	FRotator proxyRotation;
+	float proxyYaw;
+	float timeSinceReplication;
 
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -140,14 +152,15 @@ public:
 	
 	FORCEINLINE float GET_AO_YAW() const { return AO_Yaw; };
 	FORCEINLINE float GET_AO_Pitch() const { return AO_Pitch; };
-	FORCEINLINE ETurningInPlace Get_TurningInPlace() const { return TurningInPlace; };
-	FORCEINLINE UCameraComponent* GetFollowCamera() const { return Camera; }
+	FORCEINLINE ETurningInPlace Get_TurningInPlace() const { return turningInPlace; };
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return camera; }
+	FORCEINLINE bool bShouldRotateRootBone() { return bRotateRootBone; }
 
 	UPROPERTY(EditAnywhere)
-	float WalkingSpeed;
+	float walkingSpeed;
 
 	UPROPERTY(EditAnywhere)
-	float RunningSpeed;
+	float runningSpeed;
 
 	AWeapon* GetEquippedWeapon();
 
