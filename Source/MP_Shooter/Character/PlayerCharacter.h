@@ -30,6 +30,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void UpdateHealthHUD();
 	
 	/*Input*/
 	void Move(const FInputActionValue& value);
@@ -52,6 +54,9 @@ protected:
 
 	void PlayHitReactMontage();
 
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage,const UDamageType* DamageType,class AController* InstigatorController, AActor* DamageCauser);
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	class USpringArmComponent* cameraBoom;
@@ -59,8 +64,6 @@ private:
 	class UCameraComponent* camera;
 											
 	
-	APlayerController* PlayerController;
-
 	/* INPUT */
 
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -144,6 +147,18 @@ private:
 	float proxyYaw;
 	float timeSinceReplication;
 
+	/*player health*/
+	UPROPERTY(EditAnywhere, Category = "PlayerStats")
+	float maxHealth;
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_currentHealth, Category = "PlayerStats")
+	float currentHealth;
+
+	UFUNCTION()
+	void OnRep_currentHealth();
+
+	class APlayerCharacterController* playerController;
+
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
@@ -168,6 +183,6 @@ public:
 
 	void PlayFireMontage(bool IsAiming);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_HitReact();
+	void PlayerDeath();
+
 };

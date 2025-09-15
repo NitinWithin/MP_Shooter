@@ -1,7 +1,26 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "PlayerHUD.h"
+#include <GameFramework/PlayerController.h>
+#include "PlayerOverlay.h"
+
+void APlayerHUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AddPlayerOverlay();
+}
+
+void APlayerHUD::AddPlayerOverlay()
+{
+	APlayerController* playerController = GetOwningPlayerController();
+
+	if (playerController && PlayerOverlayClass)
+	{
+		playerOverlay = CreateWidget<UPlayerOverlay>(playerController, PlayerOverlayClass);
+		playerOverlay->AddToViewport();
+	}
+}
 
 void APlayerHUD::DrawHUD()
 {
@@ -46,6 +65,7 @@ void APlayerHUD::DrawHUD()
 		}
 	}
 }
+
 
 void APlayerHUD::DrawCrosshair(UTexture2D* Crosshair, FVector2D Position, FVector2D CrosshairSpread, FLinearColor Color)
 {

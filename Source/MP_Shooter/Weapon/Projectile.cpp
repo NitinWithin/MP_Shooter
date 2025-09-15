@@ -28,6 +28,8 @@ AProjectile::AProjectile()
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->bRotationFollowsVelocity = true;
+
+	Damage = 20.f;
 }
 
 void AProjectile::BeginPlay()
@@ -54,12 +56,6 @@ void AProjectile::BeginPlay()
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(OtherActor);
-	if (playerCharacter)
-	{
-		playerCharacter->Multicast_HitReact();
-	}
-
 	Destroy();
 }
 

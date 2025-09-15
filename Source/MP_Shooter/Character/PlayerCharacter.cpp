@@ -15,6 +15,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MP_Shooter/MP_Shooter.h"
+#include "MP_Shooter/PlayerController/PlayerCharacterController.h"
+#include "MP_Shooter/GameMode/ShooterGameMode.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -55,6 +57,9 @@ APlayerCharacter::APlayerCharacter()
 
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
+
+	maxHealth = 100.f;
+	currentHealth = maxHealth;
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -64,6 +69,7 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	// Add properties to replicated for the derived class
 	DOREPLIFETIME_CONDITION(APlayerCharacter, overlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(APlayerCharacter, currentHealth);
 }
 
 void APlayerCharacter::PostInitializeComponents()
@@ -80,11 +86,11 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerController = Cast<APlayerController>(GetController());
-
-	if (PlayerController)
+	UpdateHealthHUD();
+	
+	if (playerController)
 	{
-		UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(playerController->GetLocalPlayer());
 		if (subsystem && inputMappingContext)
 		{
 			subsystem->AddMappingContext(inputMappingContext, 0);
@@ -96,6 +102,21 @@ void APlayerCharacter::BeginPlay()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	turningInPlace = ETurningInPlace::ETIP_NotTurning;
+
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &APlayerCharacter::ReceiveDamage);
+	}
+}
+
+void APlayerCharacter::UpdateHealthHUD()
+{
+	playerController = playerController == nullptr ? Cast<APlayerCharacterController>(GetController()) : playerController;
+
+	if (playerController)
+	{
+		playerController->SetPlayerHealthInHUD(currentHealth, maxHealth);
+	}
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -108,7 +129,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 	else
 	{
-		
 		timeSinceReplication += DeltaTime;
 		if (timeSinceReplication > 0.15f)
 		{
@@ -177,7 +197,7 @@ void APlayerCharacter::Move(const FInputActionValue& value)
 {
 	FVector2D Movement = value.Get<FVector2D>();
 
-	if (PlayerController)
+	if (playerController)
 	{	
 		// Get the Yaw rotation from the controller
 		const FRotator rotation = Controller->GetControlRotation();
@@ -197,7 +217,7 @@ void APlayerCharacter::Run(const FInputActionValue& value)
 {
 	const bool currentValue = value.Get<bool>();
 
-	if (PlayerController && currentValue)
+	if (playerController && currentValue)
 	{
 		bIsRunning = true;
 		Running(bIsRunning);
@@ -206,7 +226,7 @@ void APlayerCharacter::Run(const FInputActionValue& value)
 
 void APlayerCharacter::StopRun(const FInputActionValue& value)
 {
-	if (PlayerController)
+	if (playerController)
 	{
 		bIsRunning = false;
 		Running(bIsRunning);
@@ -217,7 +237,7 @@ void APlayerCharacter::Look(const FInputActionValue& value)
 {
 	FVector2D CurrentValue = value.Get<FVector2D>();
 
-	if (!CurrentValue.IsZero() && PlayerController)
+	if (!CurrentValue.IsZero() && playerController)
 	{
 		float currentYawValue = CurrentValue.X * UGameplayStatics::GetWorldDeltaSeconds(this) * turnRate;
 		float currentPitchValue = CurrentValue.Y * UGameplayStatics::GetWorldDeltaSeconds(this) * turnRate * -1;
@@ -365,8 +385,6 @@ void APlayerCharacter::TurnSimProxies()
 	proxyRotationLastFrame = proxyRotation;
 	proxyRotation = GetActorRotation();
 
-	/*UE_LOG(LogTemp, Error, TEXT("ProxyRot : %f"), proxyRotation);
-	UE_LOG(LogTemp, Error, TEXT("ProxyRotLF : %f"), proxyRotationLastFrame);*/
 	proxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(
 			proxyRotation, 
 			proxyRotationLastFrame
@@ -375,21 +393,16 @@ void APlayerCharacter::TurnSimProxies()
 
 	if (FMath::Abs(proxyYaw) > turnThreshold)
 	{
-		
-		UE_LOG(LogTemp, Error, TEXT("Turning."));
 		if (proxyYaw > turnThreshold)
 		{
-		UE_LOG(LogTemp, Error, TEXT("Turning Right."));
 			turningInPlace = ETurningInPlace::ETIP_Right;
 		}
 		else if (proxyYaw < -turnThreshold)
 		{
-		UE_LOG(LogTemp, Error, TEXT("Turning Left."));
 			turningInPlace = ETurningInPlace::ETIP_Left;
 		}
 		else
 		{
-		UE_LOG(LogTemp, Error, TEXT("Niot Turning."));
 			turningInPlace = ETurningInPlace::ETIP_NotTurning;
 		}
 		return;
@@ -534,6 +547,11 @@ void APlayerCharacter::PlayFireMontage(bool IsAiming)
 	}
 }
 
+void APlayerCharacter::PlayerDeath()
+{
+
+}
+
 void APlayerCharacter::PlayHitReactMontage()
 {
 	if (combat == nullptr || combat->equippedWeapon == nullptr)
@@ -551,8 +569,11 @@ void APlayerCharacter::PlayHitReactMontage()
 	}
 }
 
-void APlayerCharacter::Multicast_HitReact_Implementation()
+void APlayerCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
+	currentHealth = FMath::Clamp(currentHealth - Damage, 0.f, maxHealth);
+
+	UpdateHealthHUD();
 	PlayHitReactMontage();
 }
 
@@ -564,4 +585,12 @@ FVector APlayerCharacter::GetHitTarget() const
 	}
 
 	return combat->hitTarget;
+}
+
+
+/*Player Stats*/
+void APlayerCharacter::OnRep_currentHealth()
+{
+	UpdateHealthHUD();
+	PlayHitReactMontage();
 }

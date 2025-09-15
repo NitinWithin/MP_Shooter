@@ -28,6 +28,15 @@ class MP_SHOOTER_API APlayerHUD : public AHUD
 	
 public:
 	virtual void DrawHUD() override;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> PlayerOverlayClass;
+
+	class UPlayerOverlay* playerOverlay;
+
+protected:
+	virtual void BeginPlay() override;
+	void AddPlayerOverlay();
 private:
 	FHUDPackage HUDPackage;
 

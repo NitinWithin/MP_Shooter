@@ -14,4 +14,12 @@ class MP_SHOOTER_API APlayerCharacterController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	void SetPlayerHealthInHUD(float currentHealth, float maxHealth);
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	class APlayerHUD* playerHUD;
 };
