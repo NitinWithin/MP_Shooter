@@ -49,6 +49,8 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bRotateRootBone = playerCharacter->bShouldRotateRootBone();
 
+	bIsPlayerDead = playerCharacter->bIsPlayerDead();
+
 	//YawOffset Calculations
 	FRotator AimRotation = playerCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(playerCharacter->GetVelocity());

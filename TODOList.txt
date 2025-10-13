@@ -10,6 +10,7 @@ LogTemp: Error: Turning.
 Works and sometimes doesnt, at merge is working
 
 5. Running animation triggers even without moving, needs correction.
+6. Death animation not triggering
 
 /* Additional Changes to add */
 1. FootSounds when moving

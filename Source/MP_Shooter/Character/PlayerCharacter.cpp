@@ -17,6 +17,7 @@
 #include "MP_Shooter/MP_Shooter.h"
 #include "MP_Shooter/PlayerController/PlayerCharacterController.h"
 #include "MP_Shooter/GameMode/ShooterGameMode.h"
+#include <TimerManager.h>
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -60,6 +61,9 @@ APlayerCharacter::APlayerCharacter()
 
 	maxHealth = 100.f;
 	currentHealth = maxHealth;
+	bIsDead = false;
+
+	DeathDelay = 3.f;
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -547,11 +551,6 @@ void APlayerCharacter::PlayFireMontage(bool IsAiming)
 	}
 }
 
-void APlayerCharacter::PlayerDeath()
-{
-
-}
-
 void APlayerCharacter::PlayHitReactMontage()
 {
 	if (combat == nullptr || combat->equippedWeapon == nullptr)
@@ -569,12 +568,58 @@ void APlayerCharacter::PlayHitReactMontage()
 	}
 }
 
+void APlayerCharacter::PlayDeathMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && deathMontage)
+	{
+		AnimInstance->Montage_Play(deathMontage);
+	}
+}
+
+void APlayerCharacter::PlayerDeath()
+{
+	Multicast_PlayerDeath();
+	GetWorldTimerManager().SetTimer(
+		playerDeathTimer,
+		this,
+		&APlayerCharacter::DeathTimerComplete,
+		DeathDelay
+	);
+}
+
+void APlayerCharacter::Multicast_PlayerDeath_Implementation()
+{
+	PlayDeathMontage();
+	bIsDead = true;
+}
+
+void APlayerCharacter::DeathTimerComplete()
+{
+	AShooterGameMode* shooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
+	if (shooterGameMode)
+	{
+		shooterGameMode->RequestRespawn(this, GetController());
+	}
+}
+
 void APlayerCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
 	currentHealth = FMath::Clamp(currentHealth - Damage, 0.f, maxHealth);
 
 	UpdateHealthHUD();
 	PlayHitReactMontage();
+
+	if (currentHealth == 0.f)
+	{
+		AShooterGameMode* gameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
+		if (gameMode)
+		{
+			playerController = playerController == nullptr ? Cast<APlayerCharacterController>(GetController()) : playerController;
+			APlayerCharacterController* AttackController = Cast<APlayerCharacterController>(InstigatorController);
+			gameMode->PlayerElim(this, playerController, AttackController);
+		}
+	}
 }
 
 FVector APlayerCharacter::GetHitTarget() const

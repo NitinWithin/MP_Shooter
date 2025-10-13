@@ -52,8 +52,6 @@ protected:
 	float Calculate_Speed();
 	void TurnSimProxies();
 
-	void PlayHitReactMontage();
-
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage,const UDamageType* DamageType,class AController* InstigatorController, AActor* DamageCauser);
 
@@ -135,6 +133,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	UAnimMontage* hitReactMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* deathMontage;
+
 	void HidePlayerWhenCameraClose();
 
 	UPROPERTY(EditAnywhere, Category = "Camera")
@@ -159,6 +160,8 @@ private:
 
 	class APlayerCharacterController* playerController;
 
+	bool bIsDead;
+
 public:	
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
@@ -170,6 +173,7 @@ public:
 	FORCEINLINE ETurningInPlace Get_TurningInPlace() const { return turningInPlace; };
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return camera; }
 	FORCEINLINE bool bShouldRotateRootBone() { return bRotateRootBone; }
+	FORCEINLINE bool bIsPlayerDead() { return bIsDead; }
 
 	UPROPERTY(EditAnywhere)
 	float walkingSpeed;
@@ -180,9 +184,23 @@ public:
 	AWeapon* GetEquippedWeapon();
 
 	FVector GetHitTarget() const;
-
+	
+	/*Montages*/
 	void PlayFireMontage(bool IsAiming);
+	void PlayHitReactMontage();
+	void PlayDeathMontage();
 
+	/*Player Death and Respawn*/
+	FTimerHandle playerDeathTimer;
+
+	UPROPERTY(EditDefaultsOnly)
+	float DeathDelay;
+	
+	void DeathTimerComplete();
+	
 	void PlayerDeath();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayerDeath();
 
 };

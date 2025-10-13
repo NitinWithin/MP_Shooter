@@ -15,5 +15,6 @@ class MP_SHOOTER_API AShooterGameMode : public AGameMode
 	GENERATED_BODY()
 	
 public:
-	virtual void PlayerElim(class APlayerCharacter* ElimChar, class APlayerCharacterController* AttkController);
+	virtual void PlayerElim(class APlayerCharacter* ElimChar, class APlayerCharacterController* VictimController, APlayerController* AttkController);
+	virtual void RequestRespawn(ACharacter* ElimChar, AController* ElimController);
 };
